@@ -5,6 +5,7 @@ set -euo pipefail
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly LOG_FILE="/var/log/rpi_start.log"
 readonly BLUE3_MIRROR_URL="http://mirror.blue3.com.br/debian"
+readonly BLUE3_NTP_SERVER="ntp.blue3.com.br"
 
 log() {
 	local level="$1"
@@ -112,6 +113,27 @@ configure_blue3_mirror() {
 			-e 's#http://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
 			-e 's#https://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
 			/etc/apt/sources.list.d/debian.sources
+	fi
+}
+
+configure_blue3_ntp() {
+	log "INFO" "Configurando NTP padrao: ${BLUE3_NTP_SERVER}"
+
+	backup_file_if_exists /etc/systemd/timesyncd.conf
+
+	cat > /etc/systemd/timesyncd.conf <<EOF
+[Time]
+NTP=${BLUE3_NTP_SERVER}
+FallbackNTP=pool.ntp.org
+EOF
+
+	if command -v systemctl >/dev/null 2>&1; then
+		systemctl enable systemd-timesyncd >/dev/null 2>&1 || true
+		systemctl restart systemd-timesyncd >/dev/null 2>&1 || true
+	fi
+
+	if command -v timedatectl >/dev/null 2>&1; then
+		timedatectl set-ntp true || true
 	fi
 }
 
@@ -228,10 +250,13 @@ main() {
 		php \
 		php-cli \
 		php-curl \
+		systemd-timesyncd \
 		ca-certificates \
 		git \
 		nano \
 		vim-tiny
+
+	configure_blue3_ntp
 
 	enable_i2c
 	enable_spi
