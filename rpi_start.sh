@@ -4,6 +4,7 @@ set -euo pipefail
 
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly LOG_FILE="/var/log/rpi_start.log"
+readonly BLUE3_MIRROR_URL="http://mirror.blue3.com.br/debian"
 
 log() {
 	local level="$1"
@@ -78,6 +79,40 @@ install_packages() {
 
 	log "INFO" "Instalando pacotes: ${packages[*]}"
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
+}
+
+backup_file_if_exists() {
+	local file_path="$1"
+
+	if [[ -f "$file_path" ]]; then
+		cp -a "$file_path" "${file_path}.blue3.bak"
+		log "INFO" "Backup criado: ${file_path}.blue3.bak"
+	fi
+}
+
+configure_blue3_mirror() {
+	log "INFO" "Configurando mirror APT padrao: ${BLUE3_MIRROR_URL}"
+
+	backup_file_if_exists /etc/apt/sources.list
+	backup_file_if_exists /etc/apt/sources.list.d/debian.sources
+
+	if [[ -f /etc/apt/sources.list ]]; then
+		sed -i \
+			-e 's#http://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			-e 's#https://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			-e 's#http://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			-e 's#https://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			/etc/apt/sources.list
+	fi
+
+	if [[ -f /etc/apt/sources.list.d/debian.sources ]]; then
+		sed -i \
+			-e 's#http://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			-e 's#https://deb.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			-e 's#http://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			-e 's#https://ftp.debian.org/debian#http://mirror.blue3.com.br/debian#g' \
+			/etc/apt/sources.list.d/debian.sources
+	fi
 }
 
 enable_i2c() {
@@ -175,6 +210,8 @@ main() {
 	chmod 640 "$LOG_FILE"
 
 	log "INFO" "Iniciando configuracao inicial do Raspberry Pi"
+
+	configure_blue3_mirror
 
 	apt_update_once
 
