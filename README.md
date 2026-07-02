@@ -1,72 +1,72 @@
 # BLUE3_RPI
 
-## Script inicial Raspberry Pi
+## Raspberry Pi initial script
 
-Este diretório contém o script de bootstrap inicial para Raspberry Pi OS Lite:
+This directory contains the initial bootstrap script for Raspberry Pi OS Lite:
 
 - [rpi_start.sh](rpi_start.sh).
-- Os arquivos blue3_rpi* são arquivos legados da configuração do monitoramento.
+- The blue3_rpi* files are legacy files from the monitoring setup.
 
-Objetivo:
+Goal:
 
-- preparar uma instalação mínima para projetos com I2C, sensores digitais e sensores analógicos;
-- manter compatibilidade com Raspberry Pi OS Lite (base Debian), com execução em modo root;
-- oferecer configuração interativa para escolher entre ambiente gráfico (Desktop) ou somente CLI.
+- prepare a minimal installation for projects with I2C, digital sensors and analog sensors;
+- keep compatibility with Raspberry Pi OS Lite (Debian-based), running in root mode;
+- offer interactive configuration to choose between a graphical environment (Desktop) or CLI only.
 
-## O que o script faz
+## What the script does
 
-1. Validação e segurança
-- executa em Bash com modo estrito (set -euo pipefail);
-- valida se está rodando como root;
-- valida sistema compatível com Raspberry Pi OS/Debian;
-- grava log de execução em /var/log/rpi_start.log.
+1. Validation and safety
+- runs in Bash with strict mode (set -euo pipefail);
+- validates that it is running as root;
+- validates that the system is compatible with Raspberry Pi OS/Debian;
+- writes an execution log to /var/log/rpi_start.log.
 
-2. Instalação de pacotes base
-- instala python3;
-- instala curl;
-- instala php;
-- adiciona pacotes úteis para projetos com sensores e desenvolvimento:
+2. Base package installation
+- installs python3;
+- installs curl;
+- installs php;
+- adds useful packages for sensor and development projects:
 	- python3-pip, python3-venv
 	- python3-smbus, python3-rpi.gpio, python3-gpiozero, python3-spidev
 	- i2c-tools
 	- php-cli, php-curl
 	- ca-certificates, git, nano, vim-tiny
 
-3. Habilitação de interfaces para sensores
-- habilita I2C;
-- habilita SPI (útil para ADCs como MCP3008);
-- pergunta se deve habilitar 1-Wire (exemplo: DS18B20).
+3. Enabling interfaces for sensors
+- enables I2C;
+- enables SPI (useful for ADCs such as the MCP3008);
+- asks whether to enable 1-Wire (example: DS18B20).
 
-4. Escolha do modo do sistema
-- pergunta se deseja instalar ambiente gráfico;
-- se SIM: instala metapacote desktop disponível (com fallback para ambiente gráfico mínimo);
-- se NÃO: mantém sistema em modo CLI (multi-user.target).
+4. System mode choice
+- asks whether to install a graphical environment;
+- if YES: installs an available desktop metapackage (with a fallback to a minimal graphical environment);
+- if NO: keeps the system in CLI mode (multi-user.target).
 
-## Como executar
+## How to run
 
-No Raspberry Pi:
+On the Raspberry Pi:
 
 ```bash
 sudo bash rpi_start.sh
 ```
 
-## Pós-instalação
+## Post-installation
 
-- reiniciar o Raspberry Pi para aplicar todas as mudanças de módulos e boot;
-- validar I2C com:
+- reboot the Raspberry Pi to apply all module and boot changes;
+- validate I2C with:
 
 ```bash
 i2cdetect -y 1
 ```
 
-- validar SPI verificando se existe /dev/spidev0.0:
+- validate SPI by checking whether /dev/spidev0.0 exists:
 
 ```bash
 ls -l /dev/spidev*
 ```
 
-## Observações
+## Notes
 
-- o script foi pensado para instalação básica mínima, evitando dependências desnecessárias;
-- por padrão, a opção recomendada para servidores e gateways é CLI;
-- use Desktop apenas quando houver necessidade real de interface gráfica no dispositivo.
+- the script was designed for a minimal basic installation, avoiding unnecessary dependencies;
+- by default, the recommended option for servers and gateways is CLI;
+- use Desktop only when there is a real need for a graphical interface on the device.
